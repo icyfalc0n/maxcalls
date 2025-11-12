@@ -1,0 +1,26 @@
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+
+	"github.com/icyfalc0n/max_calls_api/api"
+)
+
+func Auth(client api.OnemeApiClient) {
+	reader := StdinReader{Reader: bufio.NewReader(os.Stdin)}
+
+	fmt.Print("Enter phone number: ")
+	phone := reader.Read()
+	verificationToken, err := client.DoVerificationRequest(phone)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Print("SMS code: ")
+	code := reader.Read()
+	login, err := client.DoCodeEnter(verificationToken.Token, code)
+
+	fmt.Printf("Login token: %s", login.TokenAttributes.Login.Token)
+}
