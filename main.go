@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/icyfalc0n/max_calls_api/api"
+	"github.com/icyfalc0n/max_calls_api/api/oneme"
 )
 
 type StdinReader struct {
@@ -23,7 +23,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := api.NewOnemeApiClient()
+	client, err := oneme.NewOnemeApiClient()
 	if err != nil {
 		panic(err)
 	}

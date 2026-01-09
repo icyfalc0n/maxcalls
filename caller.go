@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/icyfalc0n/max_calls_api/api"
+	"github.com/icyfalc0n/max_calls_api/api/calls"
+	"github.com/icyfalc0n/max_calls_api/api/oneme"
+	"github.com/icyfalc0n/max_calls_api/api/signaling"
 )
 
-func Caller(onemeClient api.OnemeApiClient) {
+func Caller(onemeClient oneme.OnemeApiClient) {
 	onemeAuthTokenBytes, err := os.ReadFile("token_caller")
 	if err != nil {
 		panic(err)
@@ -27,7 +29,7 @@ func Caller(onemeClient api.OnemeApiClient) {
 		panic(err)
 	}
 
-	callsClient := api.CallsApiClient{}
+	callsClient := calls.CallsApiClient{}
 	loginData, err := callsClient.Login(callsLoginToken)
 	if err != nil {
 		panic(err)
@@ -43,7 +45,7 @@ func Caller(onemeClient api.OnemeApiClient) {
 		panic(err)
 	}
 
-	signalingServer, err := api.NewSignalingFromOutgoing(startedConversationInfo, calltakerExternalID)
+	signalingServer, err := signaling.NewSignalingFromOutgoing(startedConversationInfo, calltakerExternalID)
 	if err != nil {
 		panic(err)
 	}

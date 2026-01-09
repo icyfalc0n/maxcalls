@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/icyfalc0n/max_calls_api/api"
+	"github.com/icyfalc0n/max_calls_api/api/oneme"
 )
 
-func Auth(client api.OnemeApiClient) {
+func Auth(client oneme.OnemeApiClient) {
 	reader := StdinReader{Reader: bufio.NewReader(os.Stdin)}
 
 	fmt.Print("Enter phone number: ")
