@@ -12,7 +12,7 @@ import (
 	"github.com/icyfalc0n/max_calls_api/api/signaling"
 )
 
-func Caller(onemeClient oneme.OnemeApiClient) {
+func Caller(onemeClient oneme.ApiClient) {
 	onemeAuthTokenBytes, err := os.ReadFile("token_caller")
 	if err != nil {
 		panic(err)
@@ -29,7 +29,7 @@ func Caller(onemeClient oneme.OnemeApiClient) {
 		panic(err)
 	}
 
-	callsClient := calls.CallsApiClient{}
+	callsClient := calls.ApiClient{}
 	loginData, err := callsClient.Login(callsLoginToken)
 	if err != nil {
 		panic(err)

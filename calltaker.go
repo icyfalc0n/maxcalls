@@ -10,7 +10,7 @@ import (
 	"github.com/icyfalc0n/max_calls_api/api/signaling"
 )
 
-func Calltaker(onemeClient oneme.OnemeApiClient) {
+func Calltaker(onemeClient oneme.ApiClient) {
 	onemeAuthTokenBytes, err := os.ReadFile("token_calltaker")
 	if err != nil {
 		panic(err)
@@ -27,7 +27,7 @@ func Calltaker(onemeClient oneme.OnemeApiClient) {
 		panic(err)
 	}
 
-	callsClient := calls.CallsApiClient{}
+	callsClient := calls.ApiClient{}
 	loginData, err := callsClient.Login(callsLoginToken)
 	if err != nil {
 		panic(err)

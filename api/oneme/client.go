@@ -7,28 +7,28 @@ import (
 	"github.com/icyfalc0n/max_calls_api/api/oneme/messages"
 )
 
-type OnemeApiClient struct {
+type ApiClient struct {
 	RawClient *RawApiClient
 	seq       int
 }
 
-func NewOnemeApiClient() (OnemeApiClient, error) {
+func NewOnemeApiClient() (ApiClient, error) {
 	client, err := NewRawApiClient()
 	if err != nil {
-		return OnemeApiClient{}, err
+		return ApiClient{}, err
 	}
-	c := OnemeApiClient{
+	c := ApiClient{
 		RawClient: client,
 		seq:       0,
 	}
 	err = c.DoClientHello()
 	if err != nil {
-		return OnemeApiClient{}, err
+		return ApiClient{}, err
 	}
 	return c, nil
 }
 
-func SendMessage[T any](c *OnemeApiClient, opcode int, payload T) (int, error) {
+func SendMessage[T any](c *ApiClient, opcode int, payload T) (int, error) {
 	messageSeq := c.seq
 	msg := NewMessage(messageSeq, opcode, payload)
 	if err := SendRawMessage(c.RawClient, msg); err != nil {
@@ -38,7 +38,7 @@ func SendMessage[T any](c *OnemeApiClient, opcode int, payload T) (int, error) {
 	return messageSeq, nil
 }
 
-func ReceiveMessage[T any](c *OnemeApiClient, seq *int) (T, error) {
+func ReceiveMessage[T any](c *ApiClient, seq *int) (T, error) {
 	var result T
 	raw, err := c.RawClient.ReceiveRawMessage(seq)
 	if err != nil {
@@ -68,11 +68,11 @@ func ReceiveMessage[T any](c *OnemeApiClient, seq *int) (T, error) {
 	return result, nil
 }
 
-func (c *OnemeApiClient) SendClientHello() (int, error) {
+func (c *ApiClient) SendClientHello() (int, error) {
 	return SendMessage(c, messages.ClientHelloOpcode(), messages.NewClientHello())
 }
 
-func (c *OnemeApiClient) DoClientHello() error {
+func (c *ApiClient) DoClientHello() error {
 	seq, err := c.SendClientHello()
 	if err != nil {
 		return err
@@ -81,12 +81,12 @@ func (c *OnemeApiClient) DoClientHello() error {
 	return err
 }
 
-func (c *OnemeApiClient) SendVerificationRequest(phone string) (int, error) {
+func (c *ApiClient) SendVerificationRequest(phone string) (int, error) {
 	req := messages.NewVerificationRequest(phone)
 	return SendMessage(c, messages.VerificationRequestOpcode(), req)
 }
 
-func (c *OnemeApiClient) DoVerificationRequest(phone string) (messages.VerificationToken, error) {
+func (c *ApiClient) DoVerificationRequest(phone string) (messages.VerificationToken, error) {
 	seq, err := c.SendVerificationRequest(phone)
 	if err != nil {
 		return messages.VerificationToken{}, err
@@ -94,12 +94,12 @@ func (c *OnemeApiClient) DoVerificationRequest(phone string) (messages.Verificat
 	return ReceiveMessage[messages.VerificationToken](c, &seq)
 }
 
-func (c *OnemeApiClient) SendCodeEnter(token, verifyCode string) (int, error) {
+func (c *ApiClient) SendCodeEnter(token, verifyCode string) (int, error) {
 	req := messages.NewCodeEnter(token, verifyCode)
 	return SendMessage(c, messages.CodeEnterOpcode(), req)
 }
 
-func (c *OnemeApiClient) DoCodeEnter(token, verifyCode string) (messages.SuccessfulLogin, error) {
+func (c *ApiClient) DoCodeEnter(token, verifyCode string) (messages.SuccessfulLogin, error) {
 	seq, err := c.SendCodeEnter(token, verifyCode)
 	if err != nil {
 		return messages.SuccessfulLogin{}, err
@@ -107,12 +107,12 @@ func (c *OnemeApiClient) DoCodeEnter(token, verifyCode string) (messages.Success
 	return ReceiveMessage[messages.SuccessfulLogin](c, &seq)
 }
 
-func (c *OnemeApiClient) SendChatSyncRequest(token string) (int, error) {
+func (c *ApiClient) SendChatSyncRequest(token string) (int, error) {
 	req := messages.NewChatSyncRequest(token)
 	return SendMessage(c, messages.ChatSyncRequestOpcode(), req)
 }
 
-func (c *OnemeApiClient) DoChatSync(token string) (messages.ChatSyncResponse, error) {
+func (c *ApiClient) DoChatSync(token string) (messages.ChatSyncResponse, error) {
 	seq, err := c.SendChatSyncRequest(token)
 	if err != nil {
 		return messages.ChatSyncResponse{}, err
@@ -120,12 +120,12 @@ func (c *OnemeApiClient) DoChatSync(token string) (messages.ChatSyncResponse, er
 	return ReceiveMessage[messages.ChatSyncResponse](c, &seq)
 }
 
-func (c *OnemeApiClient) SendCallTokenRequest() (int, error) {
+func (c *ApiClient) SendCallTokenRequest() (int, error) {
 	req := messages.CallTokenRequest{}
 	return SendMessage(c, messages.CallTokenRequestOpcode(), req)
 }
 
-func (c *OnemeApiClient) DoCallTokenRequest() (string, error) {
+func (c *ApiClient) DoCallTokenRequest() (string, error) {
 	seq, err := c.SendCallTokenRequest()
 	if err != nil {
 		return "", err
@@ -137,7 +137,7 @@ func (c *OnemeApiClient) DoCallTokenRequest() (string, error) {
 	return resp.Token, nil
 }
 
-func (c *OnemeApiClient) WaitForIncomingCall() (messages.IncomingCall, error) {
+func (c *ApiClient) WaitForIncomingCall() (messages.IncomingCall, error) {
 	const INCOMING_CALL_OPCODE = 137
 	for {
 		raw, err := c.RawClient.ReceiveRawMessage(nil)

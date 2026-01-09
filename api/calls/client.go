@@ -7,11 +7,11 @@ import (
 	"github.com/icyfalc0n/max_calls_api/api/calls/messages"
 )
 
-type CallsApiClient struct {
+type ApiClient struct {
 	RawClient *RawApiClient
 }
 
-func (c *CallsApiClient) Login(token string) (messages.LoginData, error) {
+func (c *ApiClient) Login(token string) (messages.LoginData, error) {
 	sessionData := messages.NewSessionData(token)
 	data, err := json.Marshal(sessionData)
 	if err != nil {
@@ -33,7 +33,7 @@ func (c *CallsApiClient) Login(token string) (messages.LoginData, error) {
 	return loginData, nil
 }
 
-func (c *CallsApiClient) StartConversation(sessionKey string, callTakerID string, conversationID uuid.UUID) (messages.StartedConversationInfo, error) {
+func (c *ApiClient) StartConversation(sessionKey string, callTakerID string, conversationID uuid.UUID) (messages.StartedConversationInfo, error) {
 	payload := messages.NewStartConversationPayload()
 	payloadData, err := json.Marshal(payload)
 	if err != nil {

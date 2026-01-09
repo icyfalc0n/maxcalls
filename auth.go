@@ -8,7 +8,7 @@ import (
 	"github.com/icyfalc0n/max_calls_api/api/oneme"
 )
 
-func Auth(client oneme.OnemeApiClient) {
+func Auth(client oneme.ApiClient) {
 	reader := StdinReader{Reader: bufio.NewReader(os.Stdin)}
 
 	fmt.Print("Enter phone number: ")
