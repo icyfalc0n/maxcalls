@@ -4,37 +4,73 @@ import (
 	"github.com/google/uuid"
 )
 
-const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
-
 type DeviceType string
 
 const (
-	DeviceTypeWEB DeviceType = "WEB"
+	DeviceTypeWeb DeviceType = "WEB"
+)
+
+type Locale string
+
+const (
+	LocaleRussian Locale = "ru"
+)
+
+type OSVersion string
+
+const (
+	OSVersionWindows OSVersion = "Windows"
+)
+
+type DeviceName string
+
+const (
+	DeviceNameChrome DeviceName = "Chrome"
+)
+
+type UserAgentHeader string
+
+const (
+	UserAgentHeaderChrome = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36"
+)
+
+const AppVersion string = "25.11.2"
+
+type Screen string
+
+const (
+	ScreenPC1080p Screen = "1080x1920 1.0x"
+)
+
+type Timezone string
+
+const (
+	TimezoneMoscow Timezone = "Europe/Moscow"
 )
 
 type UserAgent struct {
-	DeviceType      DeviceType `json:"deviceType"`
-	Locale          string     `json:"locale"`
-	DeviceLocale    string     `json:"deviceLocale"`
-	OSVersion       string     `json:"osVersion"`
-	DeviceName      string     `json:"deviceName"`
-	HeaderUserAgent string     `json:"headerUserAgent"`
-	AppVersion      string     `json:"appVersion"`
-	Screen          string     `json:"screen"`
-	Timezone        string     `json:"timezone"`
+	DeviceType      DeviceType      `json:"deviceType"`
+	Locale          Locale          `json:"locale"`
+	DeviceLocale    Locale          `json:"deviceLocale"`
+	OSVersion       OSVersion       `json:"osVersion"`
+	DeviceName      DeviceName      `json:"deviceName"`
+	UserAgentHeader UserAgentHeader `json:"headerUserAgent"`
+	AppVersion      string          `json:"appVersion"`
+	Screen          Screen          `json:"screen"`
+	Timezone        Timezone        `json:"timezone"`
 }
 
 func NewUserAgent() UserAgent {
 	return UserAgent{
-		DeviceType:      DeviceTypeWEB,
-		Locale:          "ru",
-		DeviceLocale:    "ru",
-		OSVersion:       "Windows",
-		DeviceName:      "Chrome",
-		HeaderUserAgent: USER_AGENT,
-		AppVersion:      "25.11.2",
-		Screen:          "1080x1920 1.0x",
-		Timezone:        "Europe/Moscow",
+		DeviceType:      DeviceTypeWeb,
+		Locale:          LocaleRussian,
+		DeviceLocale:    LocaleRussian,
+		OSVersion:       OSVersionWindows,
+		DeviceName:      DeviceNameChrome,
+		UserAgentHeader: UserAgentHeaderChrome,
+		AppVersion:      AppVersion,
+		Screen:          ScreenPC1080p,
+		Timezone:        TimezoneMoscow,
 	}
 }
 
