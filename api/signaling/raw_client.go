@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"slices"
 
 	"github.com/gorilla/websocket"
 	callsMessages "github.com/icyfalc0n/max_calls_api/api/calls/messages"
@@ -23,36 +22,23 @@ type IncomingMessage struct {
 }
 
 type RawSignalingClient struct {
-	receiveChannel <-chan IncomingMessage
-	sendChannel    chan<- OutgoingMessage
+	incomingMessages <-chan IncomingMessage
+	outgoingMessages chan<- OutgoingMessage
 }
 
-func (c *RawSignalingClient) Send(message []byte) error {
-	errChan := make(chan error)
-	c.sendChannel <- OutgoingMessage{Bytes: message, ErrChan: errChan}
-	return <-errChan
+func NewRawSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData callsMessages.LoginData) (RawSignalingClient, error) {
+	query := url.Values{}
+	query.Set("userId", loginData.UID)
+	query.Set("entityType", "USER")
+	query.Set("conversationId", incomingCall.ConversationID)
+	query.Set("token", incomingCall.Signaling.Token)
+	endpoint := fmt.Sprintf("%s?%s", incomingCall.Signaling.URL, query.Encode())
+
+	return newFromEndpoint(endpoint)
 }
 
-func (c *RawSignalingClient) SendJSON(v any) error {
-	marshaled, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	return c.Send(marshaled)
-}
-
-func (c *RawSignalingClient) Receive() ([]byte, error) {
-	incomingMessage := <-c.receiveChannel
-	return incomingMessage.Bytes, incomingMessage.Err
-}
-
-func (c *RawSignalingClient) ReceiveJSON(v any) error {
-	msg, err := c.Receive()
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(msg, v)
+func NewRawSignalingFromOutgoing(signalingServerEndpoint string) (RawSignalingClient, error) {
+	return newFromEndpoint(signalingServerEndpoint)
 }
 
 func newFromEndpoint(endpoint string) (RawSignalingClient, error) {
@@ -74,65 +60,39 @@ func newFromEndpoint(endpoint string) (RawSignalingClient, error) {
 		return RawSignalingClient{}, err
 	}
 
-	receiveChannel := make(chan IncomingMessage, 10)
-	sendChannel := make(chan OutgoingMessage, 10)
+	incomingMessages := make(chan IncomingMessage, 10)
+	outgoingMessages := make(chan OutgoingMessage, 10)
 
-	go startRawClientActor(conn, receiveChannel, sendChannel)
+	actor := RawClientActor{conn, incomingMessages, outgoingMessages}
+	go actor.Start()
 
-	return RawSignalingClient{receiveChannel, sendChannel}, nil
+	return RawSignalingClient{incomingMessages, outgoingMessages}, nil
 }
 
-func startRawClientActor(conn *websocket.Conn, receiveChannel chan<- IncomingMessage, sendChannel <-chan OutgoingMessage) {
-	for {
-		select {
-		case outgoingMessage := <-sendChannel:
-			err := conn.WriteMessage(websocket.TextMessage, outgoingMessage.Bytes)
-			outgoingMessage.ErrChan <- err
-			if err != nil {
-				continue
-			}
-			fmt.Printf("[Signaling.Client] %s\n", outgoingMessage.Bytes)
-		default:
-			_, msg, err := conn.ReadMessage()
-			if err != nil {
-				receiveChannel <- IncomingMessage{Err: err}
-				continue
-			}
-
-			isPing, err := answerPing(conn, msg)
-			if err != nil {
-				receiveChannel <- IncomingMessage{Err: err}
-				continue
-			}
-			if isPing {
-				continue
-			}
-
-			fmt.Printf("[Signaling.Server] %s\n", msg)
-			receiveChannel <- IncomingMessage{Bytes: msg}
-		}
-	}
+func (c *RawSignalingClient) Send(message []byte) error {
+	errChan := make(chan error)
+	c.outgoingMessages <- OutgoingMessage{Bytes: message, ErrChan: errChan}
+	return <-errChan
 }
 
-func answerPing(conn *websocket.Conn, msg []byte) (bool, error) {
-	if slices.Equal(msg, []byte("ping")) {
-		return true, conn.WriteMessage(websocket.TextMessage, []byte("pong"))
+func (c *RawSignalingClient) SendJSON(v any) error {
+	marshaled, err := json.Marshal(v)
+	if err != nil {
+		return err
 	}
 
-	return false, nil
+	return c.Send(marshaled)
 }
 
-func NewRawSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData callsMessages.LoginData) (RawSignalingClient, error) {
-	query := url.Values{}
-	query.Set("userId", loginData.UID)
-	query.Set("entityType", "USER")
-	query.Set("conversationId", incomingCall.ConversationID)
-	query.Set("token", incomingCall.Signaling.Token)
-	endpoint := fmt.Sprintf("%s?%s", incomingCall.Signaling.URL, query.Encode())
-
-	return newFromEndpoint(endpoint)
+func (c *RawSignalingClient) Receive() ([]byte, error) {
+	incomingMessage := <-c.incomingMessages
+	return incomingMessage.Bytes, incomingMessage.Err
 }
 
-func NewRawSignalingFromOutgoing(signalingServerEndpoint string) (RawSignalingClient, error) {
-	return newFromEndpoint(signalingServerEndpoint)
+func (c *RawSignalingClient) ReceiveJSON(v any) error {
+	msg, err := c.Receive()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(msg, v)
 }
