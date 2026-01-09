@@ -1,6 +1,22 @@
 # MAX Calls API
 Реверс-инжиниринг API звонков в мессенджере MAX.
 
+## API Documentation
+
+Подробная документация по API доступна в директории `docs/api/`:
+
+- **[Quick Start Guide](docs/api/quick_start.md)** - Краткое введение и быстрый старт
+- **[OneMe API](docs/api/oneme.md)** - WebSocket API для аутентификации и управления звонками
+- **[Calls API](docs/api/calls.md)** - HTTP API для управления сессиями звонков
+- **[Signaling API](docs/api/singaling.md)** - WebSocket API для сигнализации во время активных звонков
+
+Документация включает:
+- Описание всех методов и endpoints
+- Форматы запросов и ответов
+- Примеры использования
+- Полные workflow для различных сценариев
+- Обработку ошибок
+
 ## Proof-of-concept
 Чтобы запустить PoC пинга, через signaling сервер MAX необходимо:
  - Два аккаунта в MAX
