@@ -45,21 +45,25 @@ func Caller(onemeClient oneme.ApiClient) {
 		panic(err)
 	}
 
-	signalingServer, err := signaling.NewSignalingFromOutgoing(startedConversationInfo, calltakerExternalID)
+	signalingClient, err := signaling.NewSignalingFromOutgoing(startedConversationInfo.Endpoint, calltakerExternalID)
 	if err != nil {
 		panic(err)
 	}
 
-	go func() {
-		for {
-			fmt.Printf("[Signaling.Calltaker] %v\n", <-signalingServer.ReceiveChannel)
-		}
-	}()
-
 	for {
-		message := "Hello calltaker!"
+		const message = "Hello calltaker!"
 		fmt.Printf("[Signaling.Caller] %s\n", message)
-		signalingServer.SendChannel <- message
+		err = signalingClient.SendSignal(message)
+		if err != nil {
+			panic(err)
+		}
+
+		receivedMsg, err := signalingClient.ReceiveSignal()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("[Signaling.Calltaker] %v\n", receivedMsg)
+
 		time.Sleep(5 * time.Second)
 	}
 }

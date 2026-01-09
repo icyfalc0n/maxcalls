@@ -8,7 +8,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const ENDPOINT = "wss://ws-api.oneme.ru/websocket"
+const endpoint = "wss://ws-api.oneme.ru/websocket"
+const origin = "https://web.max.ru"
 
 type RawApiClient struct {
 	conn              *websocket.Conn
@@ -17,9 +18,9 @@ type RawApiClient struct {
 
 func NewRawApiClient() (*RawApiClient, error) {
 	header := http.Header{}
-	header.Set("Origin", "https://web.max.ru")
+	header.Set("Origin", origin)
 
-	conn, _, err := websocket.DefaultDialer.Dial(ENDPOINT, header)
+	conn, _, err := websocket.DefaultDialer.Dial(endpoint, header)
 	if err != nil {
 		return nil, err
 	}

@@ -1,22 +1,20 @@
 package signaling
 
 import (
-	"encoding/json"
-	"slices"
 	"strconv"
 
-	calls_server "github.com/icyfalc0n/max_calls_api/api/calls/messages"
-	oneme_server "github.com/icyfalc0n/max_calls_api/api/oneme/messages"
-	signalingClient "github.com/icyfalc0n/max_calls_api/api/signaling/messages"
-	signalingServer "github.com/icyfalc0n/max_calls_api/api/signaling/messages"
+	callsMessages "github.com/icyfalc0n/max_calls_api/api/calls/messages"
+	onemeMessages "github.com/icyfalc0n/max_calls_api/api/oneme/messages"
+	"github.com/icyfalc0n/max_calls_api/api/signaling/messages"
 )
 
 type SignalingClient struct {
-	SendChannel    chan<- any
-	ReceiveChannel <-chan any
+	rawClient     RawSignalingClient
+	participantId int64
+	sequence      *int
 }
 
-func NewSignalingFromIncoming(incomingCall oneme_server.IncomingCall, loginData calls_server.LoginData) (SignalingClient, error) {
+func NewSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData callsMessages.LoginData) (SignalingClient, error) {
 	rawClient, err := NewRawSignalingFromIncoming(incomingCall, loginData)
 	if err != nil {
 		return SignalingClient{}, err
@@ -28,18 +26,18 @@ func NewSignalingFromIncoming(incomingCall oneme_server.IncomingCall, loginData 
 		return SignalingClient{}, err
 	}
 
-	acceptCallMsg := signalingClient.NewAcceptCall(1)
-	rawClient.WriteJSON(acceptCallMsg)
+	initialSequence := 1
+	client := SignalingClient{rawClient, callerID, &initialSequence}
+	err = client.sendMessage(messages.NewAcceptCall(*client.sequence))
+	if err != nil {
+		return SignalingClient{}, err
+	}
 
-	sendChannel := make(chan any, 10)
-	receiveChannel := make(chan any, 10)
-	go startChannelConverter(rawClient, receiveChannel, sendChannel, callerID)
-
-	return SignalingClient{sendChannel, receiveChannel}, nil
+	return client, nil
 }
 
-func NewSignalingFromOutgoing(startedConversationInfo calls_server.StartedConversationInfo, calltakerExternalID string) (SignalingClient, error) {
-	rawClient, err := NewRawSignalingFromOutgoing(startedConversationInfo)
+func NewSignalingFromOutgoing(signalingServerEndpoint string, calltakerExternalID string) (SignalingClient, error) {
+	rawClient, err := NewRawSignalingFromOutgoing(signalingServerEndpoint)
 	if err != nil {
 		return SignalingClient{}, err
 	}
@@ -49,58 +47,51 @@ func NewSignalingFromOutgoing(startedConversationInfo calls_server.StartedConver
 		return SignalingClient{}, err
 	}
 
-	sendChannel := make(chan any, 10)
-	receiveChannel := make(chan any, 10)
-	go startChannelConverter(rawClient, receiveChannel, sendChannel, calltakerID)
-
-	return SignalingClient{sendChannel, receiveChannel}, nil
+	initialSequence := 1
+	return SignalingClient{rawClient, calltakerID, &initialSequence}, nil
 }
 
-func readUserID(rawClient RawApiClient, externalUserID string) (int64, error) {
-	msg := rawClient.Read()
-
-	var serverHello signalingServer.ServerHello
-	err := json.Unmarshal(msg, &serverHello)
+func readUserID(rawClient RawSignalingClient, externalUserID string) (int64, error) {
+	var serverHello messages.ServerHello
+	err := rawClient.ReceiveJSON(&serverHello)
 	if err != nil {
 		return 0, err
 	}
 
-	return signalingServer.FindUserIDByExternalID(serverHello, externalUserID), nil
+	return messages.FindUserIDByExternalID(serverHello, externalUserID), nil
 }
 
-func startChannelConverter(rawClient RawApiClient, receiveChannel chan<- any, sendChannel <-chan any, callerID int64) {
-	sequence := 2
-	for {
-		select {
-		case receivedMessage := <-rawClient.ReceiveChannel:
-			if slices.Equal(receivedMessage, []byte("ping")) {
-				rawClient.Write([]byte("pong"))
-				continue
-			}
-
-			var decodedMessage map[string]any
-			err := json.Unmarshal(receivedMessage, &decodedMessage)
-			if err != nil {
-				panic(err)
-			}
-
-			if decodedMessage["type"].(string) != "notification" {
-				continue
-			}
-			if decodedMessage["notification"].(string) != "transmitted-data" {
-				continue
-			}
-
-			receiveChannel <- decodedMessage["data"]
-
-		case messageData := <-sendChannel:
-			message := signalingClient.NewTransmitData(sequence, callerID, messageData)
-			err := rawClient.WriteJSON(message)
-			if err != nil {
-				panic(err)
-			}
-			sequence += 1
-
-		}
+func (c *SignalingClient) sendMessage(v any) error {
+	err := c.rawClient.SendJSON(v)
+	if err != nil {
+		return err
 	}
+	*c.sequence += 1
+
+	return nil
+}
+
+func (c *SignalingClient) ReceiveSignal() (any, error) {
+	for {
+		// It can be valid JSON but with type and notification fields omitted, so we're doing deserialization manually
+		var msg map[string]any
+		err := c.rawClient.ReceiveJSON(&msg)
+		if err != nil {
+			return nil, err
+		}
+
+		if msg["type"].(string) != "notification" {
+			continue
+		}
+		if msg["notification"].(string) != "transmitted-data" {
+			continue
+		}
+
+		return msg["data"], nil
+	}
+}
+
+func (c *SignalingClient) SendSignal(signal any) error {
+	msg := messages.NewTransmitData(*c.sequence, c.participantId, signal)
+	return c.sendMessage(msg)
 }

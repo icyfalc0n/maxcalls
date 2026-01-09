@@ -101,3 +101,7 @@ func NewIncomingCall(raw IncomingCallJSON) (IncomingCall, error) {
 		ConversationID: raw.ConversationID,
 	}, nil
 }
+
+func IncomingCallOpcode() int {
+	return 137
+}

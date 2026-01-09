@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/icyfalc0n/max_calls_api/api/calls"
 	"github.com/icyfalc0n/max_calls_api/api/oneme"
@@ -37,21 +36,28 @@ func Calltaker(onemeClient oneme.ApiClient) {
 	fmt.Println("Waiting for incoming calls....")
 
 	incomingCall, err := onemeClient.WaitForIncomingCall()
-	signalingServer, err := signaling.NewSignalingFromIncoming(incomingCall, loginData)
+	signalingClient, err := signaling.NewSignalingFromIncoming(incomingCall, loginData)
 	if err != nil {
 		panic(err)
 	}
 
 	go func() {
 		for {
-			fmt.Printf("[Signaling.Caller] %v\n", <-signalingServer.ReceiveChannel)
 		}
 	}()
 
 	for {
-		message := "Hello caller!"
+		receivedMessage, err := signalingClient.ReceiveSignal()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("[Signaling.Caller] %v\n", receivedMessage)
+
+		const message = "Hello caller!"
+		err = signalingClient.SendSignal(message)
+		if err != nil {
+			panic(err)
+		}
 		fmt.Printf("[Signaling.Calltaker] %s\n", message)
-		signalingServer.SendChannel <- message
-		time.Sleep(5 * time.Second)
 	}
 }

@@ -138,14 +138,13 @@ func (c *ApiClient) DoCallTokenRequest() (string, error) {
 }
 
 func (c *ApiClient) WaitForIncomingCall() (messages.IncomingCall, error) {
-	const INCOMING_CALL_OPCODE = 137
 	for {
 		raw, err := c.RawClient.ReceiveRawMessage(nil)
 		if err != nil {
 			return messages.IncomingCall{}, err
 		}
 		opcodeVal, ok := raw["opcode"].(float64)
-		if !ok || int(opcodeVal) != INCOMING_CALL_OPCODE {
+		if !ok || int(opcodeVal) != messages.IncomingCallOpcode() {
 			continue
 		}
 
