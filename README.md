@@ -1,6 +1,6 @@
-# MAX Calls API
+# Maxcalls
 
-MAX Calls API is a reverse-engineered implementation of the call API for the MAX messenger.
+Maxcalls is a reverse-engineered implementation of the call API for the MAX messenger.
 
 ## Documentation
 - **[Library usage](docs/usage.md)** - Introduction in library usage
