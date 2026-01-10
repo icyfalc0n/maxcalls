@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/icyfalc0n/max_calls_api/api/calls"
@@ -50,20 +49,15 @@ func Caller(onemeClient oneme.ApiClient) {
 		panic(err)
 	}
 
-	for {
-		const message = "Hello calltaker!"
-		fmt.Printf("[Signaling.Caller] %s\n", message)
-		err = signalingClient.SendSignal(message)
-		if err != nil {
-			panic(err)
-		}
+	iceAgent, err := NewAgentFromOutgoing(startedConversationInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer iceAgent.Close()
 
-		receivedMsg, err := signalingClient.ReceiveSignal()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("[Signaling.Calltaker] %v\n", receivedMsg)
-
-		time.Sleep(5 * time.Second)
+	iceConnector := IceConnector{signalingClient, iceAgent}
+	_, err = iceConnector.Connect()
+	if err != nil {
+		panic(err)
 	}
 }

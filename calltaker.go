@@ -41,23 +41,14 @@ func Calltaker(onemeClient oneme.ApiClient) {
 		panic(err)
 	}
 
-	go func() {
-		for {
-		}
-	}()
+	iceAgent, err := NewAgentFromIncoming(incomingCall)
+	if err != nil {
+		panic(err)
+	}
 
-	for {
-		receivedMessage, err := signalingClient.ReceiveSignal()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("[Signaling.Caller] %v\n", receivedMessage)
-
-		const message = "Hello caller!"
-		err = signalingClient.SendSignal(message)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("[Signaling.Calltaker] %s\n", message)
+	iceConnector := IceConnector{signalingClient, iceAgent}
+	_, err = iceConnector.Connect()
+	if err != nil {
+		panic(err)
 	}
 }

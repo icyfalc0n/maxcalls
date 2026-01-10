@@ -1,7 +1,6 @@
 package signaling
 
 import (
-	"fmt"
 	"slices"
 
 	"github.com/gorilla/websocket"
@@ -22,7 +21,6 @@ func (actor *RawClientActor) Start() {
 			if err != nil {
 				continue
 			}
-			fmt.Printf("[Signaling.Client] %s\n", outgoingMessage.Bytes)
 		default:
 			_, msg, err := actor.conn.ReadMessage()
 			if err != nil {
@@ -39,7 +37,6 @@ func (actor *RawClientActor) Start() {
 				continue
 			}
 
-			fmt.Printf("[Signaling.Server] %s\n", msg)
 			actor.incomingMessages <- IncomingMessage{Bytes: msg}
 		}
 	}

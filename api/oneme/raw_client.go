@@ -2,7 +2,6 @@ package oneme
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -32,7 +31,6 @@ func NewRawApiClient() (*RawApiClient, error) {
 
 func SendRawMessage[T any](c *RawApiClient, message Message[T]) error {
 	data, err := json.Marshal(message)
-	fmt.Printf("[OneMe Client] %s\n", data)
 	if err != nil {
 		return err
 	}
@@ -48,7 +46,6 @@ func (c *RawApiClient) ReceiveRawMessage(seq *int) (map[string]any, error) {
 
 	for {
 		_, data, err := c.conn.ReadMessage()
-		fmt.Printf("[OneMe Server] %s\n", data)
 		if err != nil {
 			return nil, err
 		}

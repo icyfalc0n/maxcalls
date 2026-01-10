@@ -1,7 +1,9 @@
 package signaling
 
 import (
+	"encoding/json"
 	"strconv"
+	"sync/atomic"
 
 	callsMessages "github.com/icyfalc0n/max_calls_api/api/calls/messages"
 	onemeMessages "github.com/icyfalc0n/max_calls_api/api/oneme/messages"
@@ -11,7 +13,7 @@ import (
 type SignalingClient struct {
 	rawClient     RawSignalingClient
 	participantId int64
-	sequence      *int
+	sequence      *atomic.Int32
 }
 
 func NewSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData callsMessages.LoginData) (SignalingClient, error) {
@@ -26,9 +28,9 @@ func NewSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData
 		return SignalingClient{}, err
 	}
 
-	initialSequence := 1
+	initialSequence := atomic.Int32{}
 	client := SignalingClient{rawClient, callerID, &initialSequence}
-	err = client.sendMessage(messages.NewAcceptCall(*client.sequence))
+	err = client.rawClient.SendJSON(messages.NewAcceptCall(client.nextSequence()))
 	if err != nil {
 		return SignalingClient{}, err
 	}
@@ -47,7 +49,7 @@ func NewSignalingFromOutgoing(signalingServerEndpoint string, calltakerExternalI
 		return SignalingClient{}, err
 	}
 
-	initialSequence := 1
+	initialSequence := atomic.Int32{}
 	return SignalingClient{rawClient, calltakerID, &initialSequence}, nil
 }
 
@@ -61,23 +63,17 @@ func readUserID(rawClient RawSignalingClient, externalUserID string) (int64, err
 	return messages.FindUserIDByExternalID(serverHello, externalUserID), nil
 }
 
-func (c *SignalingClient) sendMessage(v any) error {
-	err := c.rawClient.SendJSON(v)
-	if err != nil {
-		return err
-	}
-	*c.sequence += 1
-
-	return nil
+func (c *SignalingClient) nextSequence() int {
+	return int(c.sequence.Add(1))
 }
 
-func (c *SignalingClient) ReceiveSignal() (any, error) {
+func (c *SignalingClient) ReceiveSignal(v any) error {
 	for {
 		// It can be valid JSON but with type and notification fields omitted, so we're doing deserialization manually
 		var msg map[string]any
 		err := c.rawClient.ReceiveJSON(&msg)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if msg["type"].(string) != "notification" {
@@ -87,11 +83,19 @@ func (c *SignalingClient) ReceiveSignal() (any, error) {
 			continue
 		}
 
-		return msg["data"], nil
+		marshaled, err := json.Marshal(msg["data"])
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(marshaled, v)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 }
 
 func (c *SignalingClient) SendSignal(signal any) error {
-	msg := messages.NewTransmitData(*c.sequence, c.participantId, signal)
-	return c.sendMessage(msg)
+	msg := messages.NewTransmitData(c.nextSequence(), c.participantId, signal)
+	return c.rawClient.SendJSON(msg)
 }
