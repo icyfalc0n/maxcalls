@@ -8,7 +8,7 @@ import (
 )
 
 type ApiClient struct {
-	RawClient *RawApiClient
+	rawClient *RawApiClient
 }
 
 func (c *ApiClient) Login(token string) (callsMessages.LoginData, error) {
@@ -18,7 +18,7 @@ func (c *ApiClient) Login(token string) (callsMessages.LoginData, error) {
 		return callsMessages.LoginData{}, err
 	}
 
-	response, err := c.RawClient.CallMethod("auth.anonymLogin", map[string]string{
+	response, err := c.rawClient.CallMethod("auth.anonymLogin", map[string]string{
 		"session_data": string(data),
 	})
 	if err != nil {
@@ -33,7 +33,8 @@ func (c *ApiClient) Login(token string) (callsMessages.LoginData, error) {
 	return loginData, nil
 }
 
-func (c *ApiClient) StartConversation(sessionKey string, callTakerID string, conversationID uuid.UUID) (callsMessages.StartedConversationInfo, error) {
+func (c *ApiClient) StartConversation(sessionKey string, callTakerID string) (callsMessages.StartedConversationInfo, error) {
+	conversationID := uuid.New()
 	payload := callsMessages.NewStartConversationPayload()
 	payloadData, err := json.Marshal(payload)
 	if err != nil {
@@ -49,7 +50,7 @@ func (c *ApiClient) StartConversation(sessionKey string, callTakerID string, con
 		"session_key":     sessionKey,
 	}
 
-	response, err := c.RawClient.CallMethod("vchat.startConversation", formData)
+	response, err := c.rawClient.CallMethod("vchat.startConversation", formData)
 	if err != nil {
 		return callsMessages.StartedConversationInfo{}, err
 	}

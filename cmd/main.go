@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/icyfalc0n/max_calls_api/internal/api/oneme"
+	"github.com/icyfalc0n/max_calls_api"
 )
 
 type StdinReader struct {
@@ -13,37 +14,34 @@ type StdinReader struct {
 }
 
 func (r *StdinReader) Read() string {
-	readed, _ := r.Reader.ReadString('\n')
-	return readed[:len(readed)-1]
+	read, _ := r.Reader.ReadString('\n')
+	return read[:len(read)-1]
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("expected 'auth', 'calltaker' or 'caller' subcommands")
+	if len(os.Args) < 3 {
+		fmt.Println("expected 'calltaker' or 'caller' subcommands and token file")
 		os.Exit(1)
 	}
 
-	client, err := oneme.NewOnemeApiClient()
+	authTokenBytes, err := os.ReadFile(os.Args[2])
+	if err != nil {
+		panic(err)
+	}
+	authToken := strings.TrimSpace(string(authTokenBytes))
+
+	calls, err := max_calls_api.NewCalls(authToken)
 	if err != nil {
 		panic(err)
 	}
 
-	defer func() {
-		err = client.RawClient.Close()
-		if err != nil {
-			panic(err)
-		}
-	}()
-
 	switch os.Args[1] {
-	case "auth":
-		Auth(client)
 	case "calltaker":
-		Calltaker(client)
+		Calltaker(calls)
 	case "caller":
-		Caller(client)
+		Caller(calls)
 	default:
-		fmt.Println("expected 'auth', 'calltaker' or 'caller' subcommands")
+		fmt.Println("expected 'calltaker' or 'caller' subcommands and token file")
 		os.Exit(1)
 	}
 }

@@ -25,6 +25,7 @@ func NewSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData
 	callerExternalID := incomingCall.CallerID
 	callerID, err := readUserID(rawClient, strconv.Itoa(callerExternalID))
 	if err != nil {
+		rawClient.Close()
 		return SignalingClient{}, err
 	}
 
@@ -32,6 +33,7 @@ func NewSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData
 	client := SignalingClient{rawClient, callerID, &initialSequence}
 	err = client.rawClient.SendJSON(signalingMessages.NewAcceptCall(client.nextSequence()))
 	if err != nil {
+		rawClient.Close()
 		return SignalingClient{}, err
 	}
 
@@ -46,6 +48,7 @@ func NewSignalingFromOutgoing(signalingServerEndpoint string, calltakerExternalI
 
 	calltakerID, err := readUserID(rawClient, calltakerExternalID)
 	if err != nil {
+		rawClient.Close()
 		return SignalingClient{}, err
 	}
 
@@ -98,4 +101,8 @@ func (c *SignalingClient) ReceiveSignal(v any) error {
 func (c *SignalingClient) SendSignal(signal any) error {
 	msg := signalingMessages.NewTransmitData(c.nextSequence(), c.participantId, signal)
 	return c.rawClient.SendJSON(msg)
+}
+
+func (c *SignalingClient) Close() error {
+	return c.rawClient.Close()
 }

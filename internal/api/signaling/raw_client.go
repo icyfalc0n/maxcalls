@@ -23,9 +23,14 @@ type IncomingMessage struct {
 	Err   error
 }
 
+type ActorCloseRequest struct {
+	ErrChan chan<- error
+}
+
 type RawSignalingClient struct {
 	incomingMessages <-chan IncomingMessage
 	outgoingMessages chan<- OutgoingMessage
+	closeChan        chan<- ActorCloseRequest
 }
 
 func NewRawSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData callsMessages.LoginData) (RawSignalingClient, error) {
@@ -64,15 +69,17 @@ func newFromEndpoint(endpoint string) (RawSignalingClient, error) {
 
 	incomingMessages := make(chan IncomingMessage, 10)
 	outgoingMessages := make(chan OutgoingMessage, 10)
+	closeChan := make(chan ActorCloseRequest)
 
-	actor := RawClientActor{conn, incomingMessages, outgoingMessages}
+	actor := RawClientActor{conn, incomingMessages, outgoingMessages, closeChan}
 	go actor.Start()
 
-	return RawSignalingClient{incomingMessages, outgoingMessages}, nil
+	return RawSignalingClient{incomingMessages, outgoingMessages, closeChan}, nil
 }
 
 func (c *RawSignalingClient) Send(message []byte) error {
 	errChan := make(chan error)
+	defer close(errChan)
 	c.outgoingMessages <- OutgoingMessage{Bytes: message, ErrChan: errChan}
 	return <-errChan
 }
@@ -97,4 +104,15 @@ func (c *RawSignalingClient) ReceiveJSON(v any) error {
 		return err
 	}
 	return json.Unmarshal(msg, v)
+}
+
+func (c *RawSignalingClient) Close() error {
+	errChan := make(chan error)
+	defer close(errChan)
+	defer close(c.closeChan)
+	defer close(c.outgoingMessages)
+
+	closeRequest := ActorCloseRequest{ErrChan: errChan}
+	c.closeChan <- closeRequest
+	return <-errChan
 }

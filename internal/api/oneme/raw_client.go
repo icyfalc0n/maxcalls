@@ -55,11 +55,12 @@ func (c *RawApiClient) ReceiveRawMessage(seq *int) (map[string]any, error) {
 			return nil, err
 		}
 
-		seqVal, ok := message["seq"].(int)
+		// When deserializing JSON number as any it defaults to float64
+		seqVal, ok := message["seq"].(float64)
 		if !ok {
 			continue
 		}
-		if seq == nil || seqVal == *seq {
+		if seq == nil || int(seqVal) == *seq {
 			return message, nil
 		}
 

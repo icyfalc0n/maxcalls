@@ -136,3 +136,13 @@ func (c *IceConnector) establishConnection(credentials signalingMessages.Credent
 	fmt.Println("Connection established!")
 	return conn, nil
 }
+
+func (c *IceConnector) Close() error {
+	err := c.IceAgent.Close()
+	if err != nil {
+		c.SignalingClient.Close()
+		return err
+	}
+
+	return c.SignalingClient.Close()
+}

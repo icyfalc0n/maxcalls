@@ -8,8 +8,8 @@ import (
 )
 
 type ApiClient struct {
-	RawClient *RawApiClient
-	seq       int
+	rawClient *RawApiClient
+	seq       *int
 }
 
 func NewOnemeApiClient() (ApiClient, error) {
@@ -17,30 +17,32 @@ func NewOnemeApiClient() (ApiClient, error) {
 	if err != nil {
 		return ApiClient{}, err
 	}
+	initialSeq := 0
 	c := ApiClient{
-		RawClient: client,
-		seq:       0,
+		rawClient: client,
+		seq:       &initialSeq,
 	}
 	err = c.DoClientHello()
 	if err != nil {
+		c.rawClient.Close()
 		return ApiClient{}, err
 	}
 	return c, nil
 }
 
 func SendMessage[T any](c *ApiClient, opcode int, payload T) (int, error) {
-	messageSeq := c.seq
+	messageSeq := *c.seq
 	msg := NewMessage(messageSeq, opcode, payload)
-	if err := SendRawMessage(c.RawClient, msg); err != nil {
+	if err := SendRawMessage(c.rawClient, msg); err != nil {
 		return 0, err
 	}
-	c.seq++
+	*c.seq++
 	return messageSeq, nil
 }
 
 func ReceiveMessage[T any](c *ApiClient, seq *int) (T, error) {
 	var result T
-	raw, err := c.RawClient.ReceiveRawMessage(seq)
+	raw, err := c.rawClient.ReceiveRawMessage(seq)
 	if err != nil {
 		return result, err
 	}
@@ -139,12 +141,12 @@ func (c *ApiClient) DoCallTokenRequest() (string, error) {
 
 func (c *ApiClient) WaitForIncomingCall() (onemeMessages.IncomingCall, error) {
 	for {
-		raw, err := c.RawClient.ReceiveRawMessage(nil)
+		raw, err := c.rawClient.ReceiveRawMessage(nil)
 		if err != nil {
 			return onemeMessages.IncomingCall{}, err
 		}
-		opcodeVal, _ := raw["opcode"].(int)
-		if opcodeVal != onemeMessages.IncomingCallOpcode() {
+		opcodeVal, _ := raw["opcode"].(float64)
+		if int(opcodeVal) != onemeMessages.IncomingCallOpcode() {
 			continue
 		}
 
@@ -165,4 +167,8 @@ func (c *ApiClient) WaitForIncomingCall() (onemeMessages.IncomingCall, error) {
 
 		return onemeMessages.NewIncomingCall(payload)
 	}
+}
+
+func (c *ApiClient) Close() error {
+	return c.rawClient.Close()
 }

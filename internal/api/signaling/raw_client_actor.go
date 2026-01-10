@@ -10,11 +10,20 @@ type RawClientActor struct {
 	conn             *websocket.Conn
 	incomingMessages chan<- IncomingMessage
 	outgoingMessages <-chan OutgoingMessage
+	closeChan        <-chan ActorCloseRequest
 }
 
 func (actor *RawClientActor) Start() {
 	for {
 		select {
+		case closeRequest := <-actor.closeChan:
+			err := actor.conn.Close()
+			if err != nil {
+				closeRequest.ErrChan <- err
+			}
+			close(actor.incomingMessages)
+
+			return
 		case outgoingMessage := <-actor.outgoingMessages:
 			err := actor.conn.WriteMessage(websocket.TextMessage, outgoingMessage.Bytes)
 			outgoingMessage.ErrChan <- err

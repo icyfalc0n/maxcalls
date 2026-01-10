@@ -4,11 +4,11 @@ import (
 	"slices"
 
 	"github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
-	messages2 "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
-	ice2 "github.com/pion/ice/v4"
+	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
+	pionIce "github.com/pion/ice/v4"
 )
 
-func NewAgentFromOutgoing(startedConversationInfo messages.StartedConversationInfo) (*ice2.Agent, error) {
+func NewAgentFromOutgoing(startedConversationInfo messages.StartedConversationInfo) (*pionIce.Agent, error) {
 	stunIceURIs, err := parseStunServers(startedConversationInfo.StunServer.Urls)
 	if err != nil {
 		return nil, err
@@ -19,10 +19,10 @@ func NewAgentFromOutgoing(startedConversationInfo messages.StartedConversationIn
 	}
 	iceServers := slices.Concat(stunIceURIs, turnIceURIs)
 
-	return ice2.NewAgentWithOptions(ice2.WithUrls(iceServers))
+	return pionIce.NewAgentWithOptions(pionIce.WithUrls(iceServers))
 }
 
-func NewAgentFromIncoming(incomingCall messages2.IncomingCall) (*ice2.Agent, error) {
+func NewAgentFromIncoming(incomingCall onemeMessages.IncomingCall) (*pionIce.Agent, error) {
 	stunIceURIs, err := parseStunServers([]string{incomingCall.Stun})
 	if err != nil {
 		return nil, err
@@ -33,5 +33,5 @@ func NewAgentFromIncoming(incomingCall messages2.IncomingCall) (*ice2.Agent, err
 	}
 	iceServers := slices.Concat(stunIceURIs, turnIceURIs)
 
-	return ice2.NewAgentWithOptions(ice2.WithUrls(iceServers))
+	return pionIce.NewAgentWithOptions(pionIce.WithUrls(iceServers))
 }
