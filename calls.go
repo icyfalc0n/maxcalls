@@ -1,11 +1,11 @@
-package max_calls_api
+package maxcalls
 
 import (
-	"github.com/icyfalc0n/max_calls_api/internal/api/calls"
-	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
-	"github.com/icyfalc0n/max_calls_api/internal/api/oneme"
-	"github.com/icyfalc0n/max_calls_api/internal/api/signaling"
-	"github.com/icyfalc0n/max_calls_api/internal/ice"
+	"github.com/icyfalc0n/maxcalls/internal/api/calls"
+	callsMessages "github.com/icyfalc0n/maxcalls/internal/api/calls/messages"
+	"github.com/icyfalc0n/maxcalls/internal/api/oneme"
+	"github.com/icyfalc0n/maxcalls/internal/api/signaling"
+	"github.com/icyfalc0n/maxcalls/internal/ice"
 )
 
 type Calls struct {

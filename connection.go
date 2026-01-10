@@ -1,7 +1,7 @@
-package max_calls_api
+package maxcalls
 
 import (
-	"github.com/icyfalc0n/max_calls_api/internal/ice"
+	"github.com/icyfalc0n/maxcalls/internal/ice"
 	pionIce "github.com/pion/ice/v4"
 )
 

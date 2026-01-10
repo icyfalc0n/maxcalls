@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/icyfalc0n/max_calls_api/internal/api/signaling"
-	signalingMessages "github.com/icyfalc0n/max_calls_api/internal/api/signaling/messages"
+	"github.com/icyfalc0n/maxcalls/internal/api/signaling"
+	signalingMessages "github.com/icyfalc0n/maxcalls/internal/api/signaling/messages"
 	"github.com/pion/ice/v4"
 )
 

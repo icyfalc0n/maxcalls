@@ -3,8 +3,8 @@ package ice
 import (
 	"slices"
 
-	"github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
-	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
+	"github.com/icyfalc0n/maxcalls/internal/api/calls/messages"
+	onemeMessages "github.com/icyfalc0n/maxcalls/internal/api/oneme/messages"
 	pionIce "github.com/pion/ice/v4"
 )
 

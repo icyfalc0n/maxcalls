@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
-	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
-	signalingMessages "github.com/icyfalc0n/max_calls_api/internal/api/signaling/messages"
+	callsMessages "github.com/icyfalc0n/maxcalls/internal/api/calls/messages"
+	onemeMessages "github.com/icyfalc0n/maxcalls/internal/api/oneme/messages"
+	signalingMessages "github.com/icyfalc0n/maxcalls/internal/api/signaling/messages"
 )
 
 type SignalingClient struct {

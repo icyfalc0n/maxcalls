@@ -7,8 +7,8 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
-	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
-	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
+	callsMessages "github.com/icyfalc0n/maxcalls/internal/api/calls/messages"
+	onemeMessages "github.com/icyfalc0n/maxcalls/internal/api/oneme/messages"
 )
 
 const origin = "https://web.max.ru"

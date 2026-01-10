@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/icyfalc0n/max_calls_api"
+	"github.com/icyfalc0n/maxcalls"
 )
 
 type StdinReader struct {
@@ -30,7 +30,7 @@ func main() {
 	}
 	authToken := strings.TrimSpace(string(authTokenBytes))
 
-	calls, err := max_calls_api.NewCalls(authToken)
+	calls, err := maxcalls.NewCalls(authToken)
 	if err != nil {
 		panic(err)
 	}

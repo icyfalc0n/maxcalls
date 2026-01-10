@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
+	callsMessages "github.com/icyfalc0n/maxcalls/internal/api/calls/messages"
 )
 
 type ApiClient struct {

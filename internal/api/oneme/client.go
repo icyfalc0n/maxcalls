@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
+	onemeMessages "github.com/icyfalc0n/maxcalls/internal/api/oneme/messages"
 )
 
 type ApiClient struct {

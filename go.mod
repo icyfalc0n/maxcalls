@@ -1,4 +1,4 @@
-module github.com/icyfalc0n/max_calls_api
+module github.com/icyfalc0n/maxcalls
 
 go 1.22.2
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/icyfalc0n/max_calls_api"
+	"github.com/icyfalc0n/maxcalls"
 )
 
-func Caller(calls max_calls_api.Calls) {
+func Caller(calls maxcalls.Calls) {
 	reader := StdinReader{Reader: bufio.NewReader(os.Stdin)}
 	fmt.Printf("Caller ID: %s\n", calls.ExternalUserId())
 	fmt.Printf("Call taker ID: ")
