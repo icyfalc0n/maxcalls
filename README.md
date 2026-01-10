@@ -1,56 +1,12 @@
 # MAX Calls API
-Реверс-инжиниринг API звонков в мессенджере MAX.
 
-## API Documentation
+MAX Calls API is a reverse-engineered implementation of the call API for the MAX messenger.
 
-Подробная документация по API доступна в директории `docs/api/`:
+## Documentation
+- **[Library usage](docs/usage.md)** - Introduction in library usage
 
-- **[Quick Start Guide](docs/api/quick_start.md)** - Краткое введение и быстрый старт
-- **[OneMe API](docs/api/oneme.md)** - WebSocket API для аутентификации и управления звонками
-- **[Calls API](docs/api/calls.md)** - HTTP API для управления сессиями звонков
-- **[Signaling API](docs/api/singaling.md)** - WebSocket API для сигнализации во время активных звонков
-
-Документация включает:
-- Описание всех методов и endpoints
-- Форматы запросов и ответов
-- Примеры использования
-- Полные workflow для различных сценариев
-- Обработку ошибок
-
-## Proof-of-concept
-Чтобы запустить PoC пинга, через signaling сервер MAX необходимо:
- - Два аккаунта в MAX
- - go 1.22.2 и выше
-
-### Получение токенов
-Для того чтобы получить токен запустить:
-```bash
-go run . auth
-```
-CLI запросит телефон в формате +7XXXXXXXXXX и SMS код подтверждения.
-В результате CLI выведет:
-```bash
-Login token: ВАШ_ТОКЕН
-```
-Копируем токен аккаунта, который будет принимать звонок в файл `token_calltaker`(ВАЖНО!!! копировать токен без LF или CRLF символов, если действия не производятся в консоли):
-```bash
-echo -n "ВАШ_ТОКЕН" > token_calltaker
-```
-
-Копируем токен аккаунта, который будет принимать звонить в файл `token_caller`(ВАЖНО!!! копировать токен без LF или CRLF символов, если действия не производятся в консоли):
-```bash
-echo -n "ВАШ_ТОКЕН" > token_caller
-```
-
-
-### Запуск клиента, принимающего звонок
-```bash
-go run . calltaker
-```
-Команда выдаст `calltaker id`, который используем далее
-
-### Запуск клиента, начинающего звонок
-```bash
-go run . caller
-```
-Команда запросит `calltaker id`, который мы получили ранее. Вводим его и видим установку подключения и пинг между клиентами через signaling сервер MAX'а
+### Reverse engineered
+- **[Quick Start Guide](docs/api/quick_start.md)** - Introduction and quick start guide
+- **[OneMe API](docs/api/oneme.md)** - WebSocket API for authentication and call management
+- **[Calls API](docs/api/calls.md)** - HTTP API for call session management
+- **[Signaling API](docs/api/singaling.md)** - WebSocket API for signaling during active calls
