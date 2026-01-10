@@ -8,7 +8,7 @@ import (
 // Connection represents an established call connection with a remote peer.
 // It wraps a Pion ICE connection and provides methods to manage the connection lifecycle.
 type Connection struct {
-	conn      *pionIce.Conn
+	*pionIce.Conn
 	connector ice.IceConnector
 }
 
