@@ -55,9 +55,14 @@ func (c *RawApiClient) ReceiveRawMessage(seq *int) (map[string]any, error) {
 			return nil, err
 		}
 
-		if seqVal, ok := message["seq"].(float64); ok && (seq == nil || int(seqVal) == *seq) {
+		seqVal, ok := message["seq"].(int)
+		if !ok {
+			continue
+		}
+		if seq == nil || seqVal == *seq {
 			return message, nil
 		}
+
 		c.undispatchedQueue = append(c.undispatchedQueue, message)
 	}
 }

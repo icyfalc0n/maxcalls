@@ -143,8 +143,8 @@ func (c *ApiClient) WaitForIncomingCall() (onemeMessages.IncomingCall, error) {
 		if err != nil {
 			return onemeMessages.IncomingCall{}, err
 		}
-		opcodeVal, ok := raw["opcode"].(float64)
-		if !ok || int(opcodeVal) != onemeMessages.IncomingCallOpcode() {
+		opcodeVal, _ := raw["opcode"].(int)
+		if opcodeVal != onemeMessages.IncomingCallOpcode() {
 			continue
 		}
 

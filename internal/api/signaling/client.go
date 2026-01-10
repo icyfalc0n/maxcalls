@@ -60,7 +60,7 @@ func readUserID(rawClient RawSignalingClient, externalUserID string) (int64, err
 		return 0, err
 	}
 
-	return signalingMessages.FindUserIDByExternalID(serverHello, externalUserID), nil
+	return signalingMessages.FindUserIDByExternalID(serverHello, externalUserID)
 }
 
 func (c *SignalingClient) nextSequence() int {
@@ -76,10 +76,10 @@ func (c *SignalingClient) ReceiveSignal(v any) error {
 			return err
 		}
 
-		if msg["type"].(string) != "notification" {
+		if msgType, _ := msg["type"].(string); msgType != "notification" {
 			continue
 		}
-		if msg["notification"].(string) != "transmitted-data" {
+		if msgNotification, _ := msg["notification"].(string); msgNotification != "transmitted-data" {
 			continue
 		}
 

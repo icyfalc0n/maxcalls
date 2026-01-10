@@ -1,5 +1,7 @@
 package messages
 
+import "fmt"
+
 type ServerHello struct {
 	Conversation Conversation `json:"conversation"`
 }
@@ -17,11 +19,11 @@ type ParticipantExternalID struct {
 	Id string `json:"id"`
 }
 
-func FindUserIDByExternalID(convo ServerHello, externalID string) int64 {
+func FindUserIDByExternalID(convo ServerHello, externalID string) (int64, error) {
 	for _, participant := range convo.Conversation.Participants {
 		if participant.ExternalID.Id == externalID {
-			return participant.Id
+			return participant.Id, nil
 		}
 	}
-	panic("User id not found in call")
+	return 0, fmt.Errorf("could not find user id %s", externalID)
 }
