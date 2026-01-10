@@ -2,16 +2,17 @@ package ice
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/icyfalc0n/maxcalls/internal/api/signaling"
 	signalingMessages "github.com/icyfalc0n/maxcalls/internal/api/signaling/messages"
+	"github.com/icyfalc0n/maxcalls/logger"
 	"github.com/pion/ice/v4"
 )
 
 type IceConnector struct {
 	SignalingClient signaling.SignalingClient
 	IceAgent        *ice.Agent
+	Logger          logger.Logger
 }
 
 func (c *IceConnector) Connect() (*ice.Conn, error) {
@@ -41,7 +42,7 @@ func (c *IceConnector) sendLocalCredentials() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Sending local user credentials. ufrag: %s, password: %s\n", ufrag, password)
+	c.Logger.Debugf("Sending local user credentials. ufrag: %s, password: %s\n", ufrag, password)
 	err = c.SignalingClient.SendSignal(signalingMessages.Credentials{UFrag: ufrag, Password: password})
 	if err != nil {
 		return err
@@ -52,12 +53,12 @@ func (c *IceConnector) sendLocalCredentials() error {
 
 func (c *IceConnector) receiveRemoteCredentials() (signalingMessages.Credentials, error) {
 	var remoteCredentials signalingMessages.Credentials
-	fmt.Println("Waiting for remote credentials...")
+	c.Logger.Debugf("Waiting for remote credentials...")
 	err := c.SignalingClient.ReceiveSignal(&remoteCredentials)
 	if err != nil {
 		return signalingMessages.Credentials{}, err
 	}
-	fmt.Printf("Received remote credentials. ufrag: %s, password: %s\n", remoteCredentials.UFrag, remoteCredentials.Password)
+	c.Logger.Debugf("Received remote credentials. ufrag: %s, password: %s\n", remoteCredentials.UFrag, remoteCredentials.Password)
 
 	return remoteCredentials, nil
 }
@@ -72,7 +73,7 @@ func (c *IceConnector) gatherICECandidates() error {
 		return err
 	}
 
-	fmt.Println("Gathering ICE candidates...")
+	c.Logger.Debugf("Gathering ICE candidates...")
 	err = c.IceAgent.GatherCandidates()
 	if err != nil {
 		return err
@@ -80,7 +81,7 @@ func (c *IceConnector) gatherICECandidates() error {
 
 	for candidate := range iceCandidates {
 		if candidate == nil {
-			fmt.Println("ICE gathering complete")
+			c.Logger.Debugf("ICE gathering complete")
 			err = c.SignalingClient.SendSignal(signalingMessages.NewCandidate{})
 			if err != nil {
 				return err
@@ -88,7 +89,7 @@ func (c *IceConnector) gatherICECandidates() error {
 			break
 		}
 		marshaledCandidate := candidate.Marshal()
-		fmt.Printf("New local ICE candidate: %s\n", marshaledCandidate)
+		c.Logger.Debugf("New local ICE candidate: %s\n", marshaledCandidate)
 
 		err := c.SignalingClient.SendSignal(signalingMessages.NewCandidate{Candidate: marshaledCandidate})
 		if err != nil {
@@ -108,11 +109,11 @@ func (c *IceConnector) receiveRemoteICECandidates() error {
 		}
 
 		if remoteCandidateMsg.Candidate == "" {
-			fmt.Println("Remote ICE gathering complete")
+			c.Logger.Debugf("Remote ICE gathering complete")
 			break
 		}
 
-		fmt.Printf("New remote ICE candidate: %s\n", remoteCandidateMsg.Candidate)
+		c.Logger.Debugf("New remote ICE candidate: %s\n", remoteCandidateMsg.Candidate)
 
 		remoteCandidate, err := ice.UnmarshalCandidate(remoteCandidateMsg.Candidate)
 		if err != nil {
@@ -127,13 +128,13 @@ func (c *IceConnector) receiveRemoteICECandidates() error {
 }
 
 func (c *IceConnector) establishConnection(credentials signalingMessages.Credentials) (*ice.Conn, error) {
-	fmt.Println("Finding an ICE candidate pair...")
+	c.Logger.Debugf("Finding an ICE candidate pair...")
 	conn, err := c.IceAgent.Dial(context.Background(), credentials.UFrag, credentials.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("Connection established!")
+	c.Logger.Debugf("Connection established!")
 	return conn, nil
 }
 

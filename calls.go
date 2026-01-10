@@ -6,6 +6,7 @@ import (
 	"github.com/icyfalc0n/maxcalls/internal/api/oneme"
 	"github.com/icyfalc0n/maxcalls/internal/api/signaling"
 	"github.com/icyfalc0n/maxcalls/internal/ice"
+	"github.com/icyfalc0n/maxcalls/logger"
 )
 
 // Calls represents a client for managing calls through the MAX messenger API.
@@ -15,6 +16,7 @@ type Calls struct {
 	onemeClient oneme.ApiClient
 	callsClient calls.ApiClient
 	loginData   callsMessages.LoginData
+	logger      logger.Logger
 }
 
 // NewCalls creates a new Calls client and authenticates with the MAX messenger API.
@@ -28,7 +30,7 @@ type Calls struct {
 //
 // Returns a Calls instance ready to make or receive calls, or an error if authentication fails.
 // The caller should call Close() when done to clean up resources.
-func NewCalls(authToken string) (Calls, error) {
+func NewCalls(logger logger.Logger, authToken string) (Calls, error) {
 	onemeClient, err := oneme.NewOnemeApiClient()
 	if err != nil {
 		return Calls{}, err
@@ -57,6 +59,7 @@ func NewCalls(authToken string) (Calls, error) {
 		onemeClient,
 		callsClient,
 		loginData,
+		logger,
 	}, nil
 }
 
@@ -93,6 +96,7 @@ func (c *Calls) Call(id string) (Connection, error) {
 	connector := ice.IceConnector{
 		SignalingClient: signalingClient,
 		IceAgent:        iceAgent,
+		Logger:          c.logger,
 	}
 	conn, err := connector.Connect()
 	if err != nil {
@@ -132,7 +136,7 @@ func (c *Calls) WaitForCall() (Connection, error) {
 		return Connection{}, err
 	}
 
-	connector := ice.IceConnector{SignalingClient: signalingClient, IceAgent: iceAgent}
+	connector := ice.IceConnector{SignalingClient: signalingClient, IceAgent: iceAgent, Logger: c.logger}
 	conn, err := connector.Connect()
 	if err != nil {
 		connector.Close()

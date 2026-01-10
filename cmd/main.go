@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -18,6 +19,12 @@ func (r *StdinReader) Read() string {
 	return read[:len(read)-1]
 }
 
+type LoggerImpl struct{}
+
+func (l LoggerImpl) Debugf(format string, args ...interface{}) {
+	log.Printf(format, args...)
+}
+
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("expected 'calltaker' or 'caller' subcommands and token file")
@@ -30,7 +37,7 @@ func main() {
 	}
 	authToken := strings.TrimSpace(string(authTokenBytes))
 
-	calls, err := maxcalls.NewCalls(authToken)
+	calls, err := maxcalls.NewCalls(LoggerImpl{}, authToken)
 	if err != nil {
 		panic(err)
 	}
