@@ -4,40 +4,40 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/icyfalc0n/max_calls_api/api/calls/messages"
+	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
 )
 
 type ApiClient struct {
 	RawClient *RawApiClient
 }
 
-func (c *ApiClient) Login(token string) (messages.LoginData, error) {
-	sessionData := messages.NewSessionData(token)
+func (c *ApiClient) Login(token string) (callsMessages.LoginData, error) {
+	sessionData := callsMessages.NewSessionData(token)
 	data, err := json.Marshal(sessionData)
 	if err != nil {
-		return messages.LoginData{}, err
+		return callsMessages.LoginData{}, err
 	}
 
 	response, err := c.RawClient.CallMethod("auth.anonymLogin", map[string]string{
 		"session_data": string(data),
 	})
 	if err != nil {
-		return messages.LoginData{}, err
+		return callsMessages.LoginData{}, err
 	}
 
-	var loginData messages.LoginData
+	var loginData callsMessages.LoginData
 	if err := json.Unmarshal(response, &loginData); err != nil {
-		return messages.LoginData{}, err
+		return callsMessages.LoginData{}, err
 	}
 
 	return loginData, nil
 }
 
-func (c *ApiClient) StartConversation(sessionKey string, callTakerID string, conversationID uuid.UUID) (messages.StartedConversationInfo, error) {
-	payload := messages.NewStartConversationPayload()
+func (c *ApiClient) StartConversation(sessionKey string, callTakerID string, conversationID uuid.UUID) (callsMessages.StartedConversationInfo, error) {
+	payload := callsMessages.NewStartConversationPayload()
 	payloadData, err := json.Marshal(payload)
 	if err != nil {
-		return messages.StartedConversationInfo{}, err
+		return callsMessages.StartedConversationInfo{}, err
 	}
 
 	formData := map[string]string{
@@ -51,12 +51,12 @@ func (c *ApiClient) StartConversation(sessionKey string, callTakerID string, con
 
 	response, err := c.RawClient.CallMethod("vchat.startConversation", formData)
 	if err != nil {
-		return messages.StartedConversationInfo{}, err
+		return callsMessages.StartedConversationInfo{}, err
 	}
 
-	var startedInfo messages.StartedConversationInfo
+	var startedInfo callsMessages.StartedConversationInfo
 	if err := json.Unmarshal(response, &startedInfo); err != nil {
-		return messages.StartedConversationInfo{}, err
+		return callsMessages.StartedConversationInfo{}, err
 	}
 
 	return startedInfo, nil

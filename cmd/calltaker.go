@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/icyfalc0n/max_calls_api/api/calls"
-	"github.com/icyfalc0n/max_calls_api/api/oneme"
-	"github.com/icyfalc0n/max_calls_api/api/signaling"
+	"github.com/icyfalc0n/max_calls_api/internal/api/calls"
+	"github.com/icyfalc0n/max_calls_api/internal/api/oneme"
+	"github.com/icyfalc0n/max_calls_api/internal/api/signaling"
+	"github.com/icyfalc0n/max_calls_api/internal/ice"
 )
 
 func Calltaker(onemeClient oneme.ApiClient) {
@@ -36,17 +37,20 @@ func Calltaker(onemeClient oneme.ApiClient) {
 	fmt.Println("Waiting for incoming calls....")
 
 	incomingCall, err := onemeClient.WaitForIncomingCall()
+	if err != nil {
+		panic(err)
+	}
 	signalingClient, err := signaling.NewSignalingFromIncoming(incomingCall, loginData)
 	if err != nil {
 		panic(err)
 	}
 
-	iceAgent, err := NewAgentFromIncoming(incomingCall)
+	iceAgent, err := ice.NewAgentFromIncoming(incomingCall)
 	if err != nil {
 		panic(err)
 	}
 
-	iceConnector := IceConnector{signalingClient, iceAgent}
+	iceConnector := ice.IceConnector{SignalingClient: signalingClient, IceAgent: iceAgent}
 	_, err = iceConnector.Connect()
 	if err != nil {
 		panic(err)

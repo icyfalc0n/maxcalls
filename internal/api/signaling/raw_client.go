@@ -7,9 +7,11 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
-	callsMessages "github.com/icyfalc0n/max_calls_api/api/calls/messages"
-	onemeMessages "github.com/icyfalc0n/max_calls_api/api/oneme/messages"
+	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
+	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
 )
+
+const origin = "https://web.max.ru"
 
 type OutgoingMessage struct {
 	Bytes   []byte
@@ -43,7 +45,7 @@ func NewRawSignalingFromOutgoing(signalingServerEndpoint string) (RawSignalingCl
 
 func newFromEndpoint(endpoint string) (RawSignalingClient, error) {
 	header := http.Header{}
-	header.Set("Origin", "https://web.max.ru")
+	header.Set("Origin", origin)
 
 	query := url.Values{}
 	query.Set("platform", "WEB")

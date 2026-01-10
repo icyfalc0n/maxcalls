@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/icyfalc0n/max_calls_api/api/oneme"
+	"github.com/icyfalc0n/max_calls_api/internal/api/oneme"
 )
 
 func Auth(client oneme.ApiClient) {
@@ -21,6 +21,9 @@ func Auth(client oneme.ApiClient) {
 	fmt.Print("SMS code: ")
 	code := reader.Read()
 	login, err := client.DoCodeEnter(verificationToken.Token, code)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Printf("Login token: %s", login.TokenAttributes.Login.Token)
 }

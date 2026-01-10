@@ -6,9 +6,10 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/icyfalc0n/max_calls_api/api/calls"
-	"github.com/icyfalc0n/max_calls_api/api/oneme"
-	"github.com/icyfalc0n/max_calls_api/api/signaling"
+	"github.com/icyfalc0n/max_calls_api/internal/api/calls"
+	"github.com/icyfalc0n/max_calls_api/internal/api/oneme"
+	"github.com/icyfalc0n/max_calls_api/internal/api/signaling"
+	"github.com/icyfalc0n/max_calls_api/internal/ice"
 )
 
 func Caller(onemeClient oneme.ApiClient) {
@@ -49,13 +50,13 @@ func Caller(onemeClient oneme.ApiClient) {
 		panic(err)
 	}
 
-	iceAgent, err := NewAgentFromOutgoing(startedConversationInfo)
+	iceAgent, err := ice.NewAgentFromOutgoing(startedConversationInfo)
 	if err != nil {
 		panic(err)
 	}
 	defer iceAgent.Close()
 
-	iceConnector := IceConnector{signalingClient, iceAgent}
+	iceConnector := ice.IceConnector{SignalingClient: signalingClient, IceAgent: iceAgent}
 	_, err = iceConnector.Connect()
 	if err != nil {
 		panic(err)

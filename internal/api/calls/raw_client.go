@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	ENDPOINT        = "https://calls.okcdn.ru/fb.do"
-	APPLICATION_KEY = "CNHIJPLGDIHBABABA"
+	endpoint       = "https://calls.okcdn.ru/fb.do"
+	applicationKey = "CNHIJPLGDIHBABABA"
+	endpointFormat = "JSON"
 )
 
 type RawApiClient struct{}
@@ -16,14 +17,14 @@ type RawApiClient struct{}
 func (c *RawApiClient) CallMethod(method string, additionalParams map[string]string) ([]byte, error) {
 	form := url.Values{}
 	form.Set("method", method)
-	form.Set("format", "JSON")
-	form.Set("application_key", APPLICATION_KEY)
+	form.Set("format", endpointFormat)
+	form.Set("application_key", applicationKey)
 
 	for k, v := range additionalParams {
 		form.Set(k, v)
 	}
 
-	resp, err := http.PostForm(ENDPOINT, form)
+	resp, err := http.PostForm(endpoint, form)
 	if err != nil {
 		return nil, err
 	}

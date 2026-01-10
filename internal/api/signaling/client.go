@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	callsMessages "github.com/icyfalc0n/max_calls_api/api/calls/messages"
-	onemeMessages "github.com/icyfalc0n/max_calls_api/api/oneme/messages"
-	"github.com/icyfalc0n/max_calls_api/api/signaling/messages"
+	callsMessages "github.com/icyfalc0n/max_calls_api/internal/api/calls/messages"
+	onemeMessages "github.com/icyfalc0n/max_calls_api/internal/api/oneme/messages"
+	signalingMessages "github.com/icyfalc0n/max_calls_api/internal/api/signaling/messages"
 )
 
 type SignalingClient struct {
@@ -30,7 +30,7 @@ func NewSignalingFromIncoming(incomingCall onemeMessages.IncomingCall, loginData
 
 	initialSequence := atomic.Int32{}
 	client := SignalingClient{rawClient, callerID, &initialSequence}
-	err = client.rawClient.SendJSON(messages.NewAcceptCall(client.nextSequence()))
+	err = client.rawClient.SendJSON(signalingMessages.NewAcceptCall(client.nextSequence()))
 	if err != nil {
 		return SignalingClient{}, err
 	}
@@ -54,13 +54,13 @@ func NewSignalingFromOutgoing(signalingServerEndpoint string, calltakerExternalI
 }
 
 func readUserID(rawClient RawSignalingClient, externalUserID string) (int64, error) {
-	var serverHello messages.ServerHello
+	var serverHello signalingMessages.ServerHello
 	err := rawClient.ReceiveJSON(&serverHello)
 	if err != nil {
 		return 0, err
 	}
 
-	return messages.FindUserIDByExternalID(serverHello, externalUserID), nil
+	return signalingMessages.FindUserIDByExternalID(serverHello, externalUserID), nil
 }
 
 func (c *SignalingClient) nextSequence() int {
@@ -96,6 +96,6 @@ func (c *SignalingClient) ReceiveSignal(v any) error {
 }
 
 func (c *SignalingClient) SendSignal(signal any) error {
-	msg := messages.NewTransmitData(c.nextSequence(), c.participantId, signal)
+	msg := signalingMessages.NewTransmitData(c.nextSequence(), c.participantId, signal)
 	return c.rawClient.SendJSON(msg)
 }

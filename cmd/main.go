@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/icyfalc0n/max_calls_api/api/oneme"
+	"github.com/icyfalc0n/max_calls_api/internal/api/oneme"
 )
 
 type StdinReader struct {
