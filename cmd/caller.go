@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
@@ -10,8 +9,9 @@ import (
 )
 
 var callerCmd = &cobra.Command{
-	Use:   "caller",
+	Use:   "caller [calltaker_id]",
 	Short: "Start the caller",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		authToken := os.Getenv("MAXCALLS_TOKEN")
 		if authToken == "" {
@@ -24,7 +24,7 @@ var callerCmd = &cobra.Command{
 			panic(err)
 		}
 
-		runCaller(calls)
+		runCaller(calls, args[0])
 	},
 }
 
@@ -32,13 +32,11 @@ func init() {
 	rootCmd.AddCommand(callerCmd)
 }
 
-func runCaller(calls maxcalls.Calls) {
-	reader := StdinReader{Reader: bufio.NewReader(os.Stdin)}
+func runCaller(calls maxcalls.Calls, calltakerID string) {
 	fmt.Printf("Caller ID: %s\n", calls.ExternalUserId())
-	fmt.Printf("Call taker ID: ")
-	calltakerExternalID := reader.Read()
+	fmt.Printf("Calling: %s\n", calltakerID)
 
-	_, err := calls.Call(calltakerExternalID)
+	_, err := calls.Call(calltakerID)
 	if err != nil {
 		panic(err)
 	}
