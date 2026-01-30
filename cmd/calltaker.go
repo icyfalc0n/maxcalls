@@ -3,23 +3,20 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/icyfalc0n/maxcalls"
 	"github.com/spf13/cobra"
 )
 
 var calltakerCmd = &cobra.Command{
-	Use:   "calltaker [token-file]",
+	Use:   "calltaker",
 	Short: "Start the calltaker",
-	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		tokenFile := args[0]
-		authTokenBytes, err := os.ReadFile(tokenFile)
-		if err != nil {
-			panic(err)
+		authToken := os.Getenv("MAXCALLS_TOKEN")
+		if authToken == "" {
+			fmt.Println("Error: MAXCALLS_TOKEN environment variable is required")
+			os.Exit(1)
 		}
-		authToken := strings.TrimSpace(string(authTokenBytes))
 
 		calls, err := maxcalls.NewCalls(LoggerImpl{}, authToken)
 		if err != nil {
